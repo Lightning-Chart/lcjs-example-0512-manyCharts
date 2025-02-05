@@ -55,14 +55,18 @@ for (let row = 0; row < rowCount; row += 1) {
                 container,
                 interactable: false,
                 animationsEnabled: false,
-                theme: disableThemeEffects(Themes.darkGold),
+                theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
             })
             .setTitle('')
             .setPadding(0)
+            .setTitleEffect(false)
+            .setSeriesBackgroundEffect(false)
         if (isImageFill(chart.engine.getBackgroundFillStyle())) {
             chart.engine.setBackgroundFillStyle(new SolidFill({ color: ColorRGBA(0, 0, 0) }))
         }
-        chart.forEachAxis((axis) => axis.setTickStrategy(AxisTickStrategies.Empty).setStrokeStyle(emptyLine).setThickness(0))
+        chart.forEachAxis((axis) =>
+            axis.setTickStrategy(AxisTickStrategies.Empty).setStrokeStyle(emptyLine).setThickness(0).setTitleEffect(false),
+        )
         chart.axisX
             .setScrollStrategy(AxisScrollStrategies.progressive)
             .setInterval({ end: 0, start: -timeWindowS * streamRatePerChHz, stopAxisAfter: false })
@@ -70,6 +74,7 @@ for (let row = 0; row < rowCount; row += 1) {
             .addPointLineAreaSeries({ dataPattern: 'ProgressiveX' })
             .setMaxSampleCount(Math.ceil(timeWindowS * streamRatePerChHz))
             .setStrokeStyle((stroke) => stroke.setThickness(1))
+            .setEffect(false)
         const variant = Math.round(2 * Math.random())
         if (variant === 0) {
             // Line trend
