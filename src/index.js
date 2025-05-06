@@ -30,7 +30,7 @@ const columnCount = 10
 const timeWindowS = 10
 const streamRatePerChHz = 60
 
-// NOTE: Creating a canvas is only required for LCJS interactive examples fullscreen functionality to work properly.
+// Application places canvas directly below example container, rather than library automatically placing it to bottom of document body. This is required for correct draw order in Interactive Examples DOM tree.
 const canvas = document.createElement('canvas')
 exampleContainer.append(canvas)
 const lc = lightningChart({
