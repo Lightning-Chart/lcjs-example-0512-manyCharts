@@ -12,6 +12,7 @@ const {
     isImageFill,
     SolidFill,
     ColorRGBA,
+    DataSetXY,
     Themes,
 } = lcjs
 
@@ -29,6 +30,12 @@ const rowCount = 10
 const columnCount = 10
 const timeWindowS = 10
 const streamRatePerChHz = 60
+const dataSet = new DataSetXY({
+    schema: {
+        x: { auto: true },
+        ...Object.fromEntries(Array.from({ length: rowCount * columnCount }, (_, i) => [`ch${i}`, { pattern: null }])),
+    },
+}).setMaxSampleCount(Math.ceil(timeWindowS * streamRatePerChHz))
 
 // Application places canvas directly below example container, rather than library automatically placing it to bottom of document body. This is required for correct draw order in Interactive Examples DOM tree.
 const canvas = document.createElement('canvas')
@@ -56,6 +63,7 @@ for (let row = 0; row < rowCount; row += 1) {
                 interactable: false,
                 animationsEnabled: false,
                 theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
+                legend: { visible: false },
             })
             .setTitle('')
             .setPadding(0)
@@ -68,13 +76,13 @@ for (let row = 0; row < rowCount; row += 1) {
             axis.setTickStrategy(AxisTickStrategies.Empty).setStrokeStyle(emptyLine).setThickness(0).setTitleEffect(false),
         )
         chart.axisX
-            .setScrollStrategy(AxisScrollStrategies.progressive)
+            .setScrollStrategy(AxisScrollStrategies.scrolling)
             .setInterval({ end: 0, start: -timeWindowS * streamRatePerChHz, stopAxisAfter: false })
         const series = chart
-            .addPointLineAreaSeries({ dataPattern: 'ProgressiveX' })
-            .setMaxSampleCount(Math.ceil(timeWindowS * streamRatePerChHz))
+            .addPointLineAreaSeries({})
             .setStrokeStyle((stroke) => stroke.setThickness(1))
             .setEffect(false)
+            .setDataSet(dataSet, { x: 'x', y: `ch${row * columnCount + col}` })
         const variant = Math.round(2 * Math.random())
         if (variant === 0) {
             // Line trend
@@ -144,15 +152,17 @@ const pushData = () => {
     modulus = newPointCount % 1
     newPointCount = Math.floor(newPointCount)
     if (newPointCount > 0) {
+        const newSamples = {}
         charts.forEach((chart, iChart) => {
             const chartData = cachedLoopedExampleData[iChart]
             const ysToPush = []
             for (let i = 0; i < newPointCount; i += 1) {
                 ysToPush[i] = chartData[(samplePosition + i) % chartData.length]
             }
-            chart.series.appendSamples({ yValues: ysToPush })
+            newSamples[`ch${iChart}`] = ysToPush
         })
         samplePosition += newPointCount
+        dataSet.appendSamples(newSamples)
     }
     tPrev = tNow
     requestAnimationFrame(pushData)
