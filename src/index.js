@@ -13,7 +13,7 @@ const {
     isImageFill,
     SolidFill,
     ColorRGBA,
-    DataSetXY,
+    DataSet,
     Themes,
 } = lcjs
 
@@ -31,7 +31,7 @@ const rowCount = 10
 const columnCount = 10
 const timeWindowS = 10
 const streamRatePerChHz = 60
-const dataSet = new DataSetXY({
+const dataSet = new DataSet({
     schema: {
         x: { auto: true },
         ...Object.fromEntries(Array.from({ length: rowCount * columnCount }, (_, i) => [`ch${i}`, { pattern: null }])),
